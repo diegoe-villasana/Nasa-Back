@@ -32,18 +32,19 @@ def distancia_onda(energy_megatons):
     k = 6  # constante empírica
     return round(k * energy_megatons ** (1/3), 2)
 
+
+
 def ciudades_cercanas(lat, lon, radio_km):#traer las ciudades
-    url = "http://api.geonames.org/findNearbyPlaceNameJSON"
-    params = {
-        "lat": lat,
-        "lng": lon,
-        "radius": radio_km,
-        "username": "Diegova123" 
-    }
-    resp = requests.get(url, params=params)
+    url = f"https://nominatim.openstreetmap.org/reverse?lat={lat}&lon={lon}&format=json"
+    resp = requests.get(url, headers={"User-Agent": "MiAppMeteoritos"})
+    print("Nominatim response:", resp.text)
     if resp.status_code == 200:
         data = resp.json()
-        return data.get("geonames", [])
+        ciudad = data.get("address", {}).get("city")
+        if ciudad:
+            return [{"city": ciudad, "lat": data.get("lat"), "lon": data.get("lon") }]
+        else:
+            return []
     else:
         return []
 
@@ -72,8 +73,8 @@ def calcular_crater():
     ciudades_onda = ciudades_cercanas(lat, lon, onda_expansiva)
 
     # Filtrar ciudades que reciben la onda expansiva pero no están dentro del cráter
-    ids_destruidas = {c["geonameId"] for c in ciudades_destruidas}
-    ciudades_afectadas = [c for c in ciudades_onda if c.get("geonameId") not in ids_destruidas]
+    ids_destruidas = {c["city"] for c in ciudades_destruidas}
+    ciudades_afectadas = [c for c in ciudades_onda if c.get("city") not in ids_destruidas]
 
 
     resultado = {
@@ -89,3 +90,7 @@ def calcular_crater():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
+if __name__ == "__main__":
+    app.run(debug=True)
+
